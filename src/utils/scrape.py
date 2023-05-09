@@ -35,7 +35,7 @@ def scrape_url(url_id, url):
     proxies = {'http': proxy_http, 'https': proxy_https} if use_proxy else None
     logger.debug(f'Proxies: {proxies} ')
 
-    response = requests.get(url, proxies=proxies)
+    response = requests.get(url, proxies=proxies, verify=False)
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # Extract and clean all URLs from the web page
@@ -84,11 +84,10 @@ def process_message(channel, method, properties, body):
         time.sleep(15)  # Pause for 15 seconds
         channel.basic_nack(delivery_tag=method.delivery_tag)
 
-        # Send a message to the error_crawler queue with url_id, url, and error_message
+        # Send a message to the error_crawler queue
         error_payload = json.dumps({
             "url_id": url_id,
             "url": url,
             "error_message": error_message
         })
         send_to_queue("error_crawler", error_payload)
-

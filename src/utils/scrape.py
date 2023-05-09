@@ -35,12 +35,17 @@ def scrape_url(url_id, url):
     proxies = {'http': proxy_http, 'https': proxy_https} if use_proxy else None
     logger.debug(f'Proxies: {proxies} ')
 
-    response = requests.get(url, proxies=proxies, verify=False)
+    response = requests.get(url, proxies=proxies, verify=False, timeout=10)
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # Extract and clean all URLs from the web page
     raw_links = [a['href'] for a in soup.find_all('a', href=True)]
-    cleaned_links = [clean_url(urljoin(url, raw_link)) for raw_link in raw_links if is_valid_url(raw_link)]
+    cleaned_links = [
+            clean_url(
+                urljoin(
+                    url, raw_link
+                )) for raw_link in raw_links if is_valid_url(raw_link)
+            ]
 
     # Deduplicate URLs
     deduplicated_links = list(set(cleaned_links))
@@ -68,7 +73,12 @@ def process_message(channel, method, properties, body):
         logger.debug(f'🔗 Deduplicated links: {deduplicated_links}')
 
         # Create a list of dictionaries with source_url_id and url
-        deduplicated_links_list = [{"source_url_id": url_id, "url": deduplicated_url} for deduplicated_url in deduplicated_links]
+        deduplicated_links_list = [
+                {
+                    "source_url_id": url_id,
+                    "url": deduplicated_url
+                } for deduplicated_url in deduplicated_links
+            ]
 
         # Convert the list to a JSON string
         message = json.dumps(deduplicated_links_list)
@@ -77,7 +87,20 @@ def process_message(channel, method, properties, body):
         send_to_queue("landing_crawler", message)
 
         channel.basic_ack(delivery_tag=method.delivery_tag)
-        logger.debug(f'✅ Successfully processed: {url}')
+        logger.debug(f'Successfully processed: {url}')
+    except requests.exceptions.Timeout as e:
+        error_message = f"❌ Failed to process {url}: Request timed out. {e}"
+        logger.error(error_message)
+        time.sleep(15)  # Pause for 15 seconds
+        channel.basic_nack(delivery_tag=method.delivery_tag)
+
+        # Send a message to the error_crawler queue
+        error_payload = json.dumps({
+            "url_id": url_id,
+            "url": url,
+            "error_message": error_message
+        })
+        send_to_queue("error_crawler", error_payload)
     except Exception as e:
         error_message = f"❌ Failed to process {url}: {e}"
         logger.error(error_message)

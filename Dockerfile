@@ -21,8 +21,8 @@ RUN apt-get update && \
 ENV APP_PORT 8086
 
 # Define a health check
-HEALTHCHECK --interval=2m --timeout=5s \
-    CMD curl -f http://localhost:8083/health || exit 1
+#HEALTHCHECK --interval=2m --timeout=5s \
+#    CMD curl -f http://localhost:8083/health || exit 1
 
 # Set up the proxy environment variables
 ENV USE_PROXY false

@@ -23,9 +23,13 @@ def scrape_url(url_id, url):
 
     # Set the proxy settings using environment variables
     use_proxy = os.environ.get('USE_PROXY', 'false').lower() == 'true'
+    logger.debug(f'USE_PROXY: {use_proxy} ')
     proxy_http = os.environ.get('PROXY_HTTP')
+    logger.debug(f'PROXY_HTTP: {proxy_http}')
     proxy_https = os.environ.get('PROXY_HTTPS')
+    logger.debug(f'PROXY_HTTPS: {proxy_https} ')
     proxies = {'http': proxy_http, 'https': proxy_https} if use_proxy else None
+    logger.debug(f'Proxies: {proxies} ')
 
     response = requests.get(url, proxies=proxies)
     soup = BeautifulSoup(response.content, 'html.parser')

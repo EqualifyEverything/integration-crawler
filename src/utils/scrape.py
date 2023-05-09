@@ -25,8 +25,12 @@ def scrape_url(url_id, url):
     use_proxy = os.environ.get('USE_PROXY', 'false').lower() == 'true'
     logger.debug(f'USE_PROXY: {use_proxy} ')
     proxy_http = os.environ.get('PROXY_HTTP')
+    if proxy_http:
+        proxy_http = f'http://{proxy_http}'
     logger.debug(f'PROXY_HTTP: {proxy_http}')
     proxy_https = os.environ.get('PROXY_HTTPS')
+    if proxy_https:
+        proxy_https = f'https://{proxy_https}'
     logger.debug(f'PROXY_HTTPS: {proxy_https} ')
     proxies = {'http': proxy_http, 'https': proxy_https} if use_proxy else None
     logger.debug(f'Proxies: {proxies} ')

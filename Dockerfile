@@ -22,8 +22,8 @@ COPY src /app/src
 ENV APP_PORT 8086
 
 # Define a health check
-HEALTHCHECK --interval=2m --timeout=5s \
-    CMD healthchecker --host=localhost --port=$APP_PORT --path="/utils/health.py" --function=healthcheck
+# HEALTHCHECK --interval=2m --timeout=5s \
+#    CMD healthchecker --path="/utils/health.py" --function=healthcheck
 
 # Set up the proxy environment variables
 ENV USE_PROXY false

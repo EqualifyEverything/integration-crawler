@@ -12,11 +12,14 @@ RUN apt-get update && \
 # Set the working directory to /app
     WORKDIR /app
 
-    # Copy the requirements file into the container
-    COPY requirements.txt /app
+# Copy the requirements file into the container
+COPY requirements.txt /app
 
-    # Install any needed packages specified in requirements.txt
-    RUN pip install --trusted-host pypi.python.org -r requirements.txt
+# Install any needed packages specified in requirements.txt
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
+
+# Copy the rest of the application code
+COPY src /app/src
 
 ENV APP_PORT 8086
 

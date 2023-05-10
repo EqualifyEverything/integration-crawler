@@ -89,15 +89,13 @@ def process_message(channel, method, properties, body):
             # Send a message with source_url_id to the landing_crawler_goose queue
             message = json.dumps({"source_url_id": url_id})
             send_to_queue("landing_crawler_goose", message)
-
         channel.basic_ack(delivery_tag=method.delivery_tag)
         logger.debug(f'Successfully processed: {url}')
     except requests.exceptions.Timeout as e:
         error_message = f"❌ Failed to process {url}: Request timed out. {e}"
         logger.error(error_message)
-        time.sleep(1)  # Pause for 1 second
-        channel.basic_nack(delivery_tag=method.delivery_tag)
-
+        # time.sleep(1)  # Pause for 1 second
+        channel.basic_ack(delivery_tag=method.delivery_tag)
         # Send a message to the error_crawler queue
         error_payload = json.dumps({
             "url_id": url_id,
@@ -118,14 +116,13 @@ def process_message(channel, method, properties, body):
                 "error_message": error_message
             })
             send_to_queue("error_crawler", error_payload)
-
-        time.sleep(1)  # Pause for 15 seconds
+        # time.sleep(1)  # Pause for 15 seconds
         channel.basic_ack(delivery_tag=method.delivery_tag)
     # Other exceptions
     except Exception as e:
         error_message = f"❌ Failed to process {url}: {e}"
         logger.error(error_message)
-        time.sleep(1)  # Pause for 15 seconds
+        # time.sleep(1)  # Pause for 15 seconds
         channel.basic_ack(delivery_tag=method.delivery_tag)
         # Send a message to the error_crawler queue
         error_payload = json.dumps({
@@ -134,3 +131,4 @@ def process_message(channel, method, properties, body):
             "error_message": error_message
         })
         send_to_queue("error_crawler", error_payload)
+        channel.basic_ack(delivery_tag=method.delivery_tag)

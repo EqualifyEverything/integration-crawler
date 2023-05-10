@@ -81,11 +81,14 @@ def process_message(channel, method, properties, body):
                 } for deduplicated_url in deduplicated_links
             ]
 
-        # Convert the list to a JSON string
-        message = json.dumps(deduplicated_links_list)
-
-        # Send the JSON array as a single message to the landing_crawler queue
-        send_to_queue("landing_crawler", message)
+        if deduplicated_links_list:
+            # Convert the list to a JSON string and send it to the landing_crawler queue
+            message = json.dumps(deduplicated_links_list)
+            send_to_queue("landing_crawler", message)
+        else:
+            # Send a message with source_url_id to the landing_crawler_goose queue
+            message = json.dumps({"source_url_id": url_id})
+            send_to_queue("landing_crawler_goose", message)
 
         channel.basic_ack(delivery_tag=method.delivery_tag)
         logger.debug(f'Successfully processed: {url}')
